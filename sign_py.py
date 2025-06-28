@@ -1,9 +1,9 @@
-import time
 import random
+import time
 from datetime import datetime
 
 
-def getSign(e):
+def getSign(e, rand_num=None, timestamp=None):
     def unsigned_right_shift(n, shift):
         return (n % 0x100000000) >> shift
 
@@ -44,7 +44,7 @@ def getSign(e):
         return result
 
     def A(t):
-        r = t.replace('\r\n', '\n')
+        r = t.replace("\r\n", "\n")
         a = -1
 
         def generate_array():
@@ -69,7 +69,14 @@ def getSign(e):
         return str((simulate_js_overflow(-1, a)) & 0xFFFFFFFF)
 
     def generate_timestamp():
-        return round((time.time() + datetime.now().astimezone().utcoffset().total_seconds() + 28800) / 1)
+        return round(
+            (
+                time.time()
+                + datetime.now().astimezone().utcoffset().total_seconds()
+                + 28800
+            )
+            / 1
+        )
 
     def adjust_timestamp(o, timestamp):
         if timestamp:
@@ -84,38 +91,63 @@ def getSign(e):
         t = t - 480 * 60
         r = datetime.fromtimestamp(t + 3600 * n)  # Convert to seconds and add 'n' hours
         data = {
-            'y': str(r.year),
-            'm': f"0{r.month}" if r.month < 10 else str(r.month),
-            'd': f"0{r.day}" if r.day < 10 else str(r.day),
-            'h': f"0{r.hour}" if r.hour < 10 else str(r.hour),
-            'f': f"0{r.minute}" if r.minute < 10 else str(r.minute)
+            "y": str(r.year),
+            "m": f"0{r.month}" if r.month < 10 else str(r.month),
+            "d": f"0{r.day}" if r.day < 10 else str(r.day),
+            "h": f"0{r.hour}" if r.hour < 10 else str(r.hour),
+            "f": f"0{r.minute}" if r.minute < 10 else str(r.minute),
         }
         return data
 
     def generate_signature(a, o, e, n, r):
-        s = ["a", "d", "e", "f", "g", "h", "l", "m", "y", "i", "j", "n", "o", "p", "k", "q", "r", "s", "t", "u", "b",
-             "c", "v", "w", "s", "z"]
+        s = [
+            "a",
+            "d",
+            "e",
+            "f",
+            "g",
+            "h",
+            "l",
+            "m",
+            "y",
+            "i",
+            "j",
+            "n",
+            "o",
+            "p",
+            "k",
+            "q",
+            "r",
+            "s",
+            "t",
+            "u",
+            "b",
+            "c",
+            "v",
+            "w",
+            "s",
+            "z",
+        ]
         u = formatDate(o)
-        h = u['y']
-        g = u['m']
-        l = u['d']
-        c = u['h']
-        u = u['f']
-        d = ''.join([h, g, l, c, u])
+        h = u["y"]
+        g = u["m"]
+        l = u["d"]
+        c = u["h"]
+        u = u["f"]
+        d = "".join([h, g, l, c, u])
         f = [s[int(p)] for p in d]
-        h = A(''.join(f))
+        h = A("".join(f))
         g = A(f"{o}|{a}|{e}|{n}|{r}|{h}")
         return [h, f"{o}-{a}-{g}"]
 
-    a = str(random.randint(0, 9999999))
-    o = generate_timestamp()
-    o = adjust_timestamp(o, timestamp=round(time.time()))
+    a = str(rand_num) if rand_num is not None else str(random.randint(0, 9999999))
+    o = timestamp if timestamp is not None else generate_timestamp()
 
     n = "web"
-    r = '3'
+    r = "3"
     return generate_signature(a, o, e, n, r)
 
 
-if __name__ == '__main__':
-    e = '/b/api/file/list/new'
+if __name__ == "__main__":
+    e = "/b/api/file/list/new"
     print(getSign(e))
